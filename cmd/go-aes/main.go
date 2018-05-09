@@ -1,26 +1,33 @@
 package main
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"flag"
 	"fmt"
 	"github.com/nicholastoddsmith/aesrw"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	//"gopkg.in/yaml.v2"
+	"bufio"
+	"bytes"
 )
 
 var key string
 var action string
 var out string
+var sign bool
 
 func init() {
 	flag.Usage = printUsage
 	flag.StringVar(&key, "k", "", "key to be used as base64 url encoded string")
 	flag.StringVar(&action, "a", "", "action: (e)ncrypt, (d)ecrypt")
 	flag.StringVar(&out, "o", "", "file to write output to")
+	flag.BoolVar(&sign, "s", true, "generate HMAC for encrypted file")
 }
 
 func printUsage() {
@@ -58,6 +65,20 @@ func printUsage() {
 
 }
 
+func createMAC(msg, key []byte) (smsg []byte) {
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(msg))
+	expectedMAC := mac.Sum(nil)
+	return []byte(expectedMAC)
+}
+
+func checkMAC(msg, msg_mac, key []byte) (ans bool) {
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(msg))
+	expectedMAC := mac.Sum(nil)
+	return hmac.Equal(msg_mac, expectedMAC)
+}
+
 func openStdinOrFile() io.Reader {
 	var err error
 	r := os.Stdin
@@ -92,6 +113,8 @@ func genKeyString() (key string) {
 
 func main() {
 	flag.Parse()
+	log.Printf("action: %s\n", action)
+	log.Printf("sign: %t\n", sign)
 	r := openStdinOrFile()
 	//readSomething(r)
 	if action == "d" && key == "" {
@@ -110,6 +133,7 @@ func main() {
 		if out != "" {
 			f, err := os.OpenFile(out, os.O_RDWR|os.O_CREATE, 0755)
 			checkFatal(err)
+			defer f.Close()
 			aw, err = aesrw.NewWriter(f, k)
 		} else {
 			aw, err = aesrw.NewWriter(os.Stdout, k)
@@ -119,7 +143,49 @@ func main() {
 		checkFatal(err)
 		aw.Close()
 		log.Printf("%d bytes copied to aes writer\n", n)
+		if sign {
+			// sign file with a HMAC
+			if out != "" {
+				// read output file
+				encData, err := ioutil.ReadFile(out)
+				// create HMAC
+				HMAC := createMAC(encData, k)
+				log.Printf("HMAC: %x\n", HMAC)
+				// append HMAC to encrypted file
+				var signedData bytes.Buffer
+				sw := bufio.NewWriter(&signedData)
+				sw.Write(encData)
+				sw.Write(HMAC)
+				sw.Flush()
+				// write HMACed encrypted file
+				err = ioutil.WriteFile(out+".signed", signedData.Bytes(), 0755)
+				checkFatal(err)
+			} else {
+				err := fmt.Errorf("can not sign file, since standard out was used to write data to")
+				checkFatal(err)
+
+			}
+		}
 	case "d":
+		if sign {
+			// check HMAC
+			// read input file
+			input, err := ioutil.ReadAll(r)
+			checkFatal(err)
+			// split HMAC and file
+			extractedHMAC := input[len(input)-32:]
+			// calculate HMAC for file
+			genHMAC := createMAC(input[0:len(input)-32], k)
+			// check if extracted HMAC matches calculated HMAC
+			if checkMAC(input[0:len(input)-32], extractedHMAC, k) {
+				log.Printf("HMAC (%x) is correct.\n", genHMAC)
+			} else {
+				err := fmt.Errorf("HMAC IS NOT CORRECT, aborting")
+				log.Printf("The file was possibly altered in transit, the signature is not correct.")
+				checkFatal(err)
+			}
+			r = bytes.NewReader(input[0 : len(input)-32])
+		}
 		// decrypt a file
 		ar, err := aesrw.NewReader(r, k)
 		checkFatal(err)
@@ -134,5 +200,35 @@ func main() {
 			checkFatal(err)
 		}
 		log.Printf("%d bytes copied from aes reader\n", n)
+	case "s":
+		// sign file with a HMAC
+		var inBuf bytes.Buffer
+		inWriter := bufio.NewWriter(&inBuf)
+		io.Copy(inWriter, r)
+		inWriter.Flush()
+		HMAC := createMAC(inBuf.Bytes(), k)
+		log.Printf("HMAC: %x\n", HMAC)
+		inWriter.Write(HMAC)
+		inWriter.Flush()
+		if out != "" {
+			ioutil.WriteFile(out, inBuf.Bytes(), 0755)
+		}
+	case "c":
+		// check HMAC
+		// read input file
+		input, err := ioutil.ReadAll(r)
+		checkFatal(err)
+		// split HMAC and file
+		extractedHMAC := input[len(input)-32:]
+		// calculate HMAC for file
+		genHMAC := createMAC(input[0:len(input)-32], k)
+		// check if extracted HMAC matches calculated HMAC
+		if checkMAC(input[0:len(input)-32], extractedHMAC, k) {
+			log.Printf("HMAC (%x) is correct.\n", genHMAC)
+		}
+		if out != "" {
+			ioutil.WriteFile(out, input[0:len(input)-32], 0755)
+			fmt.Printf("now decrypt file '%s'\n", out)
+		}
 	}
 }

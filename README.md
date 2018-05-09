@@ -1,5 +1,7 @@
 # go-aes
 
+go-aes is a simple command line tool to encrypt or decrypt files useing the advanced encryption standard (AES)
+
 ## Usage to go-aes:
 
 ```aes -a (e|d) [options] [file]```
@@ -35,4 +37,10 @@ decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'
     	key to be used as base64 url encoded string
   -o string
     	file to write output to
+
+
+
+## Known Issues
+
+* FILES encrypted with _go-aes_ are NOT INTEGRITY PROTECTED, they are just encrypted.
 

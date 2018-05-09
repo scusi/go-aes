@@ -46,4 +46,4 @@ decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'
 
 ## Releases
 
-precompiled releases for Darwin, Windows and Linux can be downloaded at (releases[https://github.com/scusi/go-aes/releases/latest]
+precompiled releases for Darwin, Windows and Linux can be downloaded at (releases)[https://github.com/scusi/go-aes/releases/latest]

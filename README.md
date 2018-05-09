@@ -13,16 +13,19 @@ Note:
 ## Usage Examples:
 
  encyrpt file 'myfile', with a new random key and write to file 'out.aes'
-    ```aes -a e -o out.aes myfile```
+
+```aes -a e -o out.aes myfile```
 
 Note: if you omit the '-k' key flag a new random key will be generated your you.
       The generated key will be printed out on standard error
 
 encyrpt file 'myfile', with a new random key and write to file 'out.aes'
-   ```cat myfile | aes -a e -o out.aes```
+
+```cat myfile | aes -a e -o out.aes```
 
 decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'
-   ```aes -a d -o myfile.copy -k isTll4ijS5lSOWouDHgBo2j9VOXub1iXoUBbiNcmWzQ= out.aes```
+
+```aes -a d -o myfile.copy -k isTll4ijS5lSOWouDHgBo2j9VOXub1iXoUBbiNcmWzQ= out.aes```
 
 ## Options:
 

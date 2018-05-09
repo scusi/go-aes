@@ -44,3 +44,6 @@ decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'
 
 * FILES encrypted with _go-aes_ are NOT INTEGRITY PROTECTED, they are just encrypted.
 
+## Releases
+
+precompiled releases for Darwin, Windows and Linux can be downloaded at (releases[https://github.com/scusi/go-aes/releases/latest]

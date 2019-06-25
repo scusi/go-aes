@@ -42,7 +42,7 @@ decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'
 
 ## Known Issues
 
-* FILES encrypted with _go-aes_ are NOT INTEGRITY PROTECTED, they are just encrypted.
+* FILES encrypted with _-s false_ falg are NOT INTEGRITY PROTECTED, they are just encrypted.
 
 ## Releases
 

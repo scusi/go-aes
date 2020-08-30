@@ -72,11 +72,11 @@ func createMAC(msg, key []byte) (smsg []byte) {
 	return []byte(expectedMAC)
 }
 
-func checkMAC(msg, msg_mac, key []byte) (ans bool) {
+func checkMAC(msg, msgMac, key []byte) (ans bool) {
 	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(msg))
 	expectedMAC := mac.Sum(nil)
-	return hmac.Equal(msg_mac, expectedMAC)
+	return hmac.Equal(msgMac, expectedMAC)
 }
 
 func openStdinOrFile() io.Reader {
@@ -158,7 +158,8 @@ func main() {
 				sw.Write(HMAC)
 				sw.Flush()
 				// write HMACed encrypted file
-				err = ioutil.WriteFile(out+".signed", signedData.Bytes(), 0755)
+				//err = ioutil.WriteFile(out+".signed", signedData.Bytes(), 0755)
+				err = ioutil.WriteFile(out, signedData.Bytes(), 0755)
 				checkFatal(err)
 			} else {
 				err := fmt.Errorf("can not sign file, since standard out was used to write data to")

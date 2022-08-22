@@ -36,7 +36,7 @@ var showVersion bool
 func init() {
 	flag.Usage = printUsage
 	flag.StringVar(&key, "k", "", "key to be used as base64 url encoded string")
-	flag.StringVar(&action, "a", "", "action: (e)ncrypt, (d)ecrypt")
+	flag.StringVar(&action, "a", "", "action: (e)ncrypt, (d)ecrypt, (s)ign, (c)eck signature")
 	flag.StringVar(&out, "o", "", "file to write output to")
 	flag.BoolVar(&sign, "s", true, "generate HMAC for encrypted file")
 	flag.BoolVar(&showVersion, "version", false, "shows version info and exits")
@@ -45,7 +45,7 @@ func init() {
 func printUsage() {
 	fmt.Printf("Usage to %s:\n", os.Args[0])
 	fmt.Println("")
-	fmt.Println(" aes -a (e|d|s|c) [options] [file]")
+	fmt.Println(" go-aes -a (e|d|s|c) [options] [file]")
 	fmt.Println("")
 	fmt.Println("Note:")
 	fmt.Println("- If no file is given stadard input will be used to read data from.")
@@ -58,18 +58,18 @@ func printUsage() {
 	fmt.Println("===============")
 	fmt.Println("")
 	fmt.Println("// encyrpt file 'myfile', with a new random key and write to file 'out.aes'")
-	fmt.Println("    aes -a e -o out.aes myfile")
+	fmt.Println("    go-aes -a e -o out.aes myfile")
 	fmt.Println("")
 	fmt.Println("Note: if you omit the '-k' key flag a new random key will be generated your you.")
 	fmt.Println("      The generated key will be printed out on standard error")
 
 	fmt.Println("")
 	fmt.Println("// encyrpt file 'myfile', with a new random key and write to file 'out.aes'")
-	fmt.Println("   cat myfile | aes -a e -o out.aes")
+	fmt.Println("   cat myfile | go-aes -a e -o out.aes")
 	fmt.Println("")
 
 	fmt.Println("// decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'")
-	fmt.Println("   aes -a d -o myfile.copy -k isTll4ijS5lSOWouDHgBo2j9VOXub1iXoUBbiNcmWzQ= out.aes")
+	fmt.Println("   go-aes -a d -o myfile.copy -k isTll4ijS5lSOWouDHgBo2j9VOXub1iXoUBbiNcmWzQ= out.aes")
 	fmt.Println("")
 	fmt.Println("Options:")
 	fmt.Println("========")

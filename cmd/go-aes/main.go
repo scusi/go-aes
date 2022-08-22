@@ -1,4 +1,5 @@
 // go-aes - a commandline tool to apply the AES encryption algorithm on given files.
+//
 package main
 
 import (
@@ -19,6 +20,9 @@ import (
 )
 
 // build time variable meant to be filled by goreleaser (or Makefile)
+// You can set those also manual like in the below example:
+// > go build ldflags="-X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`" ./cmd/go-aes/
+// exchange the placeholders (in curly brackets) with the actual values.
 var (
 	version   = "dev"
 	branch    = "unknown"
@@ -50,9 +54,8 @@ func printUsage() {
 	fmt.Println("Note:")
 	fmt.Println("- If no file is given stadard input will be used to read data from.")
 	fmt.Println("- If no output file is given stadard output will be used to write data to.")
-
 	fmt.Println("- the action option is mandentory")
-	fmt.Println("- in case of 'decryption' the key flag (k) is mandentory")
+	fmt.Println("- in case of 'decryption' and 'check signature' the key flag (k) is mandentory")
 	fmt.Println("")
 	fmt.Println("Usage Examples:")
 	fmt.Println("===============")
@@ -132,7 +135,7 @@ func genKeyString() (key string) {
 func main() {
 	flag.Parse()
 	if showVersion {
-		log.Printf("Version: %s, build by %s, from commit %s at %s", version, builtBy, commit, date)
+		fmt.Printf("Version: %s, build by %s, from commit %s at %s", version, builtBy, commit, date)
 		os.Exit(0)
 	}
 	log.Printf("action: %s\n", action)

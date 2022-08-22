@@ -31,6 +31,7 @@ var key string
 var action string
 var out string
 var sign bool
+var showVersion bool
 
 func init() {
 	flag.Usage = printUsage
@@ -38,12 +39,13 @@ func init() {
 	flag.StringVar(&action, "a", "", "action: (e)ncrypt, (d)ecrypt")
 	flag.StringVar(&out, "o", "", "file to write output to")
 	flag.BoolVar(&sign, "s", true, "generate HMAC for encrypted file")
+	flag.BoolVar(&showVersion, "version", false, "shows version info and exits")
 }
 
 func printUsage() {
 	fmt.Printf("Usage to %s:\n", os.Args[0])
 	fmt.Println("")
-	fmt.Println(" aes -a (e|d) [options] [file]")
+	fmt.Println(" aes -a (e|d|s|c) [options] [file]")
 	fmt.Println("")
 	fmt.Println("Note:")
 	fmt.Println("- If no file is given stadard input will be used to read data from.")
@@ -129,6 +131,10 @@ func genKeyString() (key string) {
 
 func main() {
 	flag.Parse()
+	if showVersion {
+		log.Printf("Version: %s, build by %s, from commit %s at %s", version, builtBy, commit, date)
+		os.Exit(0)
+	}
 	log.Printf("action: %s\n", action)
 	log.Printf("sign: %t\n", sign)
 	r := openStdinOrFile()

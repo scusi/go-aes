@@ -18,6 +18,15 @@ import (
 	"bytes"
 )
 
+// build time variable meant to be filled by goreleaser (or Makefile)
+var (
+	version   = "dev"
+	branch    = "unknown"
+	commit    = "unknown"
+	date      = "unknown"
+	builtBy   = "unknown"
+)
+
 var key string
 var action string
 var out string
@@ -145,7 +154,7 @@ func main() {
 	log.Printf("useing key: %s", key)
 	// depending on action...
 	switch action {
-	case "e":	// encrypt a file
+	case "e": // encrypt a file
 		var aw *aesrw.AESWriter
 		if out != "" {
 			f, err := os.OpenFile(out, os.O_RDWR|os.O_CREATE, 0755)

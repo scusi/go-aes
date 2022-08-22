@@ -1,3 +1,4 @@
+// go-aes - a commandline tool to apply the AES encryption algorithm on given files.
 package main
 
 import (
@@ -65,6 +66,8 @@ func printUsage() {
 
 }
 
+// createMAC - takes a message and a key, returns a HMAC for the given message, with the given key.
+// HMAC is 32byte long and based on SHA256
 func createMAC(msg, key []byte) (smsg []byte) {
 	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(msg))
@@ -72,6 +75,7 @@ func createMAC(msg, key []byte) (smsg []byte) {
 	return []byte(expectedMAC)
 }
 
+// checkMAC - takes a message, a HMAC and a key, returns true if the given HMAC is correct.
 func checkMAC(msg, msgMac, key []byte) (ans bool) {
 	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(msg))
@@ -79,6 +83,7 @@ func checkMAC(msg, msgMac, key []byte) (ans bool) {
 	return hmac.Equal(msgMac, expectedMAC)
 }
 
+// openStdinOrFile - helper function to read from a given file or standard input.
 func openStdinOrFile() io.Reader {
 	var err error
 	r := os.Stdin
@@ -94,12 +99,14 @@ func openStdinOrFile() io.Reader {
 
 }
 
+// checkFatal - Error check routine, throws a fatal error if err is not nil.
 func checkFatal(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+// genKeyString - helper function to encode a given key into a base64 URL encoded string
 func genKeyString() (key string) {
 	k := make([]byte, 32)
 	_, err := rand.Read(k)
@@ -116,19 +123,29 @@ func main() {
 	log.Printf("action: %s\n", action)
 	log.Printf("sign: %t\n", sign)
 	r := openStdinOrFile()
-	//readSomething(r)
+	// if action is 'decryption' and no key was given, throw error and exit.
 	if action == "d" && key == "" {
 		err := fmt.Errorf("no key given, decryption needs a key, use -k switch")
 		checkFatal(err)
 	}
+	// if action is encryption and no key was given, generate a random key.
 	if action == "e" && key == "" {
 		key = genKeyString()
 	}
+	if action == "s" && key == "" {
+		key = genKeyString()
+	}
+	if action == "c" && key == "" {
+		key = genKeyString()
+		err := fmt.Errorf("no key given, signature checking needs a key, use -k switch")
+		checkFatal(err)
+	}
 	k, err := base64.URLEncoding.DecodeString(key)
 	checkFatal(err)
+	log.Printf("useing key: %s", key)
+	// depending on action...
 	switch action {
-	case "e":
-		// encrypt a file
+	case "e":	// encrypt a file
 		var aw *aesrw.AESWriter
 		if out != "" {
 			f, err := os.OpenFile(out, os.O_RDWR|os.O_CREATE, 0755)
@@ -207,6 +224,7 @@ func main() {
 		inWriter := bufio.NewWriter(&inBuf)
 		io.Copy(inWriter, r)
 		inWriter.Flush()
+		log.Printf("sign data with key: %s", key)
 		HMAC := createMAC(inBuf.Bytes(), k)
 		log.Printf("HMAC: %x\n", HMAC)
 		inWriter.Write(HMAC)
@@ -226,6 +244,9 @@ func main() {
 		// check if extracted HMAC matches calculated HMAC
 		if checkMAC(input[0:len(input)-32], extractedHMAC, k) {
 			log.Printf("HMAC (%x) is correct.\n", genHMAC)
+		} else {
+			log.Printf("HMAC (%x) IS NOT correct!\n", extractedHMAC)
+			log.Printf("WARNING: HMAC verification failed!")
 		}
 		if out != "" {
 			ioutil.WriteFile(out, input[0:len(input)-32], 0755)

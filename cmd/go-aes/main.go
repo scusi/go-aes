@@ -70,6 +70,9 @@ func printUsage() {
 	fmt.Println("// encyrpt file 'myfile', with a new random key and write to file 'out.aes'")
 	fmt.Println("   cat myfile | go-aes -a e -o out.aes")
 	fmt.Println("")
+	fmt.Println("Note: as long as `-sign` option is not set to 'false' files will be integrity protected when encrypted.")
+	fmt.Println("      By default `-sign` option is set to 'true'.")
+	fmt.Println("")
 
 	fmt.Println("// decrypt file 'out.aes', with given key and write cleartext to 'myfile.copy'")
 	fmt.Println("   go-aes -a d -o myfile.copy -k isTll4ijS5lSOWouDHgBo2j9VOXub1iXoUBbiNcmWzQ= out.aes")
